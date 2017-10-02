@@ -1,0 +1,161 @@
+/*
+ * Base structure
+ */
+
+/* Move down content because we have a fixed navbar that is 50px tall */
+body {
+  padding-top: 50px;
+}
+
+/*
+ * Global add-ons
+ */
+
+.sub-header {
+  color: #5b6982;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+
+/*
+ * Table row padding
+ */
+
+.table>tbody>td {
+  padding: 8px;
+}
+
+/*
+ * Top navigation
+ * Hide default border to remove 1px line.
+ */
+.navbar-fixed-top {
+  border: 0;
+}
+
+.navbar-default {
+  background-color: #778eb1;
+  border-color: #5b6982;
+}
+
+.navbar-default .navbar-brand {
+  color: #f4f6f9;
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-brand:focus {
+  color: #9eb8d5;
+}
+
+.navbar-default .navbar-text {
+  color: #f4f6f9;
+}
+
+.navbar-default .navbar-nav > li > a {
+  color: #f4f6f9;
+}
+
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+  color: #9eb8d5;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+  color: #9eb8d5;
+  background-color: #5b6982;
+}
+
+.navbar-default .navbar-nav > .open > a,
+.navbar-default .navbar-nav > .open > a:hover,
+.navbar-default .navbar-nav > .open > a:focus {
+  color: #9eb8d5;
+  background-color: #5b6982;
+}
+
+.navbar-default .navbar-toggle {
+  border-color: #5b6982;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+  background-color: #5b6982;
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+  background-color: #f4f6f9;
+}
+
+.navbar-default .navbar-collapse,
+.navbar-default .navbar-form {
+  border-color: #f4f6f9;
+}
+
+.navbar-default .navbar-link {
+  color: #f4f6f9;
+}
+
+.navbar-default .navbar-link:hover {
+  color: #9eb8d5;
+}
+
+@media (max-width: 767px) {
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #f4f6f9;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+  .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #9eb8d5;
+  }
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:hover,
+  .navbar-default .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #9eb8d5;
+    background-color: #5b6982;
+  }
+}
+
+/*
+ * Custom Jamf colored button
+ */
+
+.btn-jamf {
+    color: #f4f6f9;
+    background-color: #9eb8d5;
+    border-color: #5b6982;
+}
+
+.btn-jamf:hover {
+    color: #9eb8d5;
+    background-color: #5b6982;
+    border-color: #9eb8d5;
+}
+
+/*
+ * Custom Jamf colored button
+ */
+
+.text-jamf-blue-dark {
+  color: #5b6982;
+}
+
+/*
+ * Main content
+ */
+
+.main {
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+
+.main .page-header {
+  margin-top: 0;
+}

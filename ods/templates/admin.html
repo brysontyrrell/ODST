@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block body_content %}
+  <div class="container-fluid">
+
+    <div class="col-sm-12 col-md-12 main">
+        <script>
+        $(document).ready(function() {
+            document.getElementById("navbar-description").textContent=": Server Admin";
+        })
+        </script>
+
+      <h2 class="sub-header">About This ODS</h2>
+      <div class="table-responsive">
+        <table class="table table-striped" id="about-ods">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>URL</th>
+              <th>ISS ID</th>
+              <th>Key</th>
+              <th>Stage</th>
+              <th>Firewalled Mode</th>
+              <th></th>
+            </tr>
+          </thead>
+            <tbody>
+                <tr>
+                    <td id="ods-name"></td>
+                    <td id="ods-url"></td>
+                    <td id="ods-iss"></td>
+                    <td>
+                        <span id="ods-key" style="display:none;"></span>
+                        <button id="ods-key-reveal" class="btn btn-jamf btn-xs">
+                            Reveal <span class="glyphicon glyphicon-eye-open"></span>
+                        </button>
+                    <td id="ods-stage"></td>
+                    <td id="ods-firewalled"></td>
+                    <td>
+                        <button class="btn btn-jamf btn-xs" title="Edit">
+                            <span class="glyphicon glyphicon-edit"></span>
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+
+      <h2 class="sub-header">System Information</h2>
+      <div class="table-responsive">
+        <table class="table table-striped" id="system-info">
+          <thead>
+            <tr>
+              <th>CPU Count</th>
+              <th>Total Memory</th>
+              <th>Used Memory</th>
+              <th>Available Memory</th>
+              <th>Disk Space Total</th>
+              <th>Disk Space Used</th>
+              <th>Disk Space Free</th>
+              <th>Network Bytes Sent</th>
+              <th>Network Bytes Received</th>
+              <th>System Uptime</th>
+            </tr>
+          </thead>
+            <tbody>
+                <tr>
+                    <td id="sys-cpu"></td>
+                    <td id="sys-mem-total"></td>
+                    <td id="sys-mem-used"></td>
+                    <td id="sys-mem-avail"></td>
+                    <td id="sys-disk-total"></td>
+                    <td id="sys-disk-used"></td>
+                    <td id="sys-disk-free"></td>
+                    <td id="sys-net-sent"></td>
+                    <td id="sys-net-rcvd"></td>
+                    <td id="sys-uptime"></td>
+                </tr>
+            </tbody>
+        </table>
+      </div>
+
+        <h2 class="sub-header">API Tokens</h2>
+
+    </div>
+  </div>
+
+    <script>
+    $(document).ready(function(){
+        $.ajax(
+        {
+            type: "GET",
+            url: '{{ url_for('api_admin.about') }}',
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            success: function (jsonData) {
+                var fw_mode = "";
+                if (jsonData.firewalled_mode === true) {
+                    fw_mode = 'Enabled'
+                } else {
+                    fw_mode = 'Disabled'
+                }
+                $('#ods-name').text(jsonData.name);
+                $('#ods-url').text(jsonData.url);
+                $('#ods-iss').text(jsonData.iss);
+                $('#ods-key').text(jsonData.key);
+                $('#ods-stage').text(jsonData.stage);
+                $('#ods-firewalled').text(fw_mode);
+            },
+
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    })
+    </script>
+
+    <script>
+    $(document).ready(function(){
+        $("#ods-key-reveal").click(function(){
+            $("#ods-key").show();
+            $("#ods-key-reveal").hide();
+        });
+    });
+    </script>
+
+    <script>
+    $(document).ready(function(){
+        $.ajax(
+        {
+            type: "GET",
+            url: '{{ url_for('api_admin.system') }}',
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            success: function (jsonData) {
+                $('#sys-cpu').text(jsonData.cpu_count);
+                $('#sys-mem-total').text(jsonData.mem_total_hr);
+                $('#sys-mem-used').text(jsonData.mem_used_hr);
+                $('#sys-mem-avail').text(jsonData.mem_available_hr);
+                $('#sys-disk-total').text(jsonData.disk_total_hr);
+                $('#sys-disk-used').text(jsonData.disk_used_hr);
+                $('#sys-disk-free').text(jsonData.disk_free_hr);
+                $('#sys-net-sent').text(jsonData.network_bytes_sent_hr);
+                $('#sys-net-rcvd').text(jsonData.network_bytes_received_hr);
+                $('#sys-uptime').text(jsonData.uptime_hr);
+            },
+
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    })
+    </script>
+
+{% endblock %}

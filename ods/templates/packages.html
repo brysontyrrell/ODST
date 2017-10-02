@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block body_content %}
+  <div class="container-fluid">
+      <div class="col-sm-12 col-md-12 main">
+
+          <script>
+          $(document).ready(function() {
+              document.getElementById("navbar-description").textContent=": Package Manager";
+          })
+          </script>
+
+          <h2 class="sub-header">Upload a Package</h2>
+          <div class="container-fluid">
+              <form class="form-inline" id="packageUpload" method="post" enctype="multipart/form-data">
+                  <div class="row">
+                      <div class="form-group">
+                          <input type="file" class="filestyle" data-icon="false" data-buttonText="Select File" data-buttonBefore="true" data-placeholder="No file selected..." name="file" required/>
+                      </div>
+
+                      <div class="form-group">
+                          <select class="form-control" name="stage" id="stage-select" required>
+                              <optgroup label="Deploy Stage">
+                                  <option>Prod</option>
+                                  <option>Test</option>
+                                  <option>Develop</option>
+                              </optgroup>
+                          </select>
+                      </div>
+
+                      <div class="form-group">
+                          <input class="btn btn-jamf" type="submit" value="Upload" id="pkgBtnSubmit"/>
+                      </div>
+                  </div>
+              </form>
+          </div>
+
+          <h2 class="sub-header">Available Packages</h2>
+          <div class="table-responsive">
+            <table class="table table-striped" id="package-list">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Size</th>
+                  <th>SHA1 Hash</th>
+                  <th>State</th>
+                  <th>Stage</th>
+                </tr>
+              </thead>
+              <tbody/>
+            </table>
+          </div>
+
+    </div>
+  </div>
+
+    <script>
+    $(document).ready(function(){
+        $.ajax(
+        {
+            type: "GET",
+            url: '{{ url_for('api_admin.list_packages') }}',
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            success: function (data) {
+                var table_body = '';
+                $.each(data.items, function(i, item) {
+                    table_body += '<tr>' +
+                    '<td>' + item.filename + '</td>' +
+                    '<td>' + item.file_size_hr + '</td>' +
+                    '<td>' + item.sha1 + '</td>' +
+                    '<td>' + item.status + '</td>' +
+                    '<td>' + item.stage + '</td></tr>';
+                });
+                $('#package-list tbody').html(table_body);
+            },
+
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    })
+    </script>
+
+    <script>
+    $(document).ready(function () {
+        $("#pkgBtnSubmit").click(function (event) {
+            //stop submit the form, we will post it manually.
+            event.preventDefault();
+            var form = new FormData($('#packageUpload')[0]);
+            $("#pkgBtnSubmit").prop("disabled", true);
+            $.ajax({
+                type: "POST",
+                enctype: 'multipart/form-data',
+                url: "{{ url_for('api_admin.upload_file') }}",
+                data: form,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    console.log("SUCCESS : ", data);
+                    location.reload();
+                },
+                error: function (e) {
+                    console.log("ERROR : ", e);
+                    console.log("ERROR MSG: ", e.responseText);
+                    location.reload();
+                }
+            });
+        });
+    });
+    </script>
+
+{% endblock %}

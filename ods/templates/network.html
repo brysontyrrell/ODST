@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block body_content %}
+  <div class="container-fluid">
+
+    <div class="col-sm-12 col-md-12 main">
+        <script>
+        $(document).ready(function() {
+            document.getElementById("navbar-description").textContent=": Network";
+        })
+        </script>
+
+        <h2 class="sub-header">Register with a ODS</h2>
+        <div class="container-fluid">
+              <form class="form-inline" id="registerODS" method="post">
+                  <div class="row">
+                      <div class="form-group">
+                          <div class="input-group">
+                              <span class="input-group-addon">URL</span>
+                              <input type="text" class="form-control" id="ods_url" name="url" required/>
+                          </div>
+                      </div>
+
+                      <div class="form-group">
+                          <div class="input-group">
+                              <span class="input-group-addon">ISS ID</span>
+                              <input type="text" class="form-control" id="ods_iss" name="iss_id" required/>
+                          </div>
+                      </div>
+
+                      <div class="form-group">
+                          <div class="input-group">
+                              <span class="input-group-addon">Key</span>
+                              <input type="password" class="form-control" id="ods_key" name="key" required/>
+                          </div>
+                      </div>
+
+                      <div class="form-group">
+                          <input class="btn btn-jamf" type="submit" value="Register" id="odsBtnSubmit"/>
+                      </div>
+                  </div>
+              </form>
+          </div>
+
+        <h2 class="sub-header">Registered ODSs</h2>
+        <div class="table-responsive">
+            <table class="table table-striped" id="registered-ods-list">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>URL</th>
+                        <th>Date Registered</th>
+                        <th>Stage</th>
+                        <th>Firewalled Mode</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody/>
+            </table>
+        </div>
+
+    </div>
+  </div>
+
+    <script>
+    $(document).ready(function () {
+        var registerForm = $('#registerODS');
+
+        registerForm.on('submit', function (event) {
+            //stop submit the form, we will post it manually.
+            event.preventDefault();
+
+            var jsonData = ConvertFormToJSON(registerForm);
+
+            $("#odsBtnSubmit").prop("disabled", true);
+
+            $.ajax({
+                type: "POST",
+                url: "{{ url_for('api_admin.register_ods') }}",
+                dataType: 'json',
+                contentType: "application/json",
+                data: JSON.stringify(jsonData),
+                cache: false,
+                success: function (data) {
+                    console.log("SUCCESS: ", data);
+                    location.reload();
+                },
+                error: function (e) {
+                    console.log("ERROR: ", e);
+                    console.log("ERROR MSG: ", e.responseText);
+                    location.reload();
+                }
+            });
+        });
+    });
+    </script>
+
+    <script>
+    $(document).ready(function(){
+        $.ajax(
+        {
+            type: "GET",
+            url: '{{ url_for('api_admin.list_registered_ods') }}',
+            contentType: "application/json",
+            dataType: "json",
+            cache: false,
+            success: function (jsonData) {
+                var fw_mode = "";
+                if (jsonData.firewalled_mode === true) {
+                    fw_mode = 'Enabled'
+                } else {
+                    fw_mode = 'Disabled'
+                }
+                var table_body = '';
+                $.each(jsonData.items, function(i, item) {
+                    table_body += '<tr>' +
+                    '<td>' + item.name + '</td>' +
+                    '<td>' + item.url + '</td>' +
+                    '<td>' + ConvertTimestamp(item.registered_on_ts) + '</td>' +
+                    '<td>' + item.stage + '</td>' +
+                    '<td>' + fw_mode + '</td>' +
+                    '<td></td></tr>';
+                });
+                $('#registered-ods-list tbody').html(table_body);
+            },
+
+            error: function (msg) {
+                alert(msg.responseText);
+            }
+        });
+    })
+    </script>
+
+{% endblock %}

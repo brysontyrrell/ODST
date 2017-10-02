@@ -52,3 +52,29 @@ project is being written around the following design:
     built directly on top of the admin API providing 1:1 feature parity between
     the two forms of interaction.
 
+Completed Features
+------------------
+
+* Admin web login
+
+    Default username: ``admin``
+
+    Default password: ``ods1234!``
+
+* Admin web UI
+
+    The web UI page for server administration currently shows ODS settings via
+    ``/api/admin/about`` and system information via ``/api/admin/system``.
+
+* Package web UI
+
+    Package data is available via ``/api/admin/packages``.
+
+* Package uploads via ``/api/admin/upload``
+
+    This is also implemented in the package UI.
+
+* ODS network UI
+
+    ODS registration is functional, and instances can make API requests to each
+    other, but syncing is not yet implemented.
