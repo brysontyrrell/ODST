@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - mysql:/var/lib/mysql
+    environment:
+      - MYSQL_SERVER=mysql
+      - MYSQL_ROOT_PASSWORD=odst1234!
+      - MYSQL_DATABASE=odsdb
+      - MYSQL_USER=odsadmin
+      - MYSQL_PASSWORD=odst1234
+    networks:
+      - db
+  
+  redis:
+    image: redis:3
+    networks:
+      - cache
+
+  web:
+    build:
+      context: ./
+      dockerfile: ./docker/webapp/Dockerfile
+    restart: always
+    volumes:
+      - static:/opt/odst/ods/static/share
+    environment:
+      - MYSQL_SERVER=mysql
+      - MYSQL_DATABASE=odsdb
+      - MYSQL_USER=odsadmin
+      - MYSQL_PASSWORD=odst1234
+      - DEBUG=True
+      - ODS_CONF=/opt/odst/ods_conf.cfg
+    networks:
+      - cache
+      - db
+      - proxy
+    depends_on:
+      - mysql
+      - redis
+
+  nginx:
+    build: ./docker/nginx
+    restart: always
+    volumes:
+      - static:/opt/odst/ods/static/share
+    ports:
+      - "80:80"
+    networks:
+      - proxy
+    depends_on:
+      - web
+
+networks:
+  cache:
+  db:
+  proxy:
+
+volumes:
+  mysql:
+  static:
