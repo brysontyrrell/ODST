@@ -16,8 +16,11 @@ RUN /usr/bin/pip install -U pip && \
 
 COPY /ods/ /opt/odst/ods/
 COPY /application.py /opt/odst/
+COPY /ods_worker.py /opt/odst/
 COPY /docker/webapp/ods_conf.cfg /opt/odst/
+
+COPY /docker/webapp/startup.sh /opt/odst/
 
 RUN /bin/chown -R www-data:www-data /opt/odst/ods/static
 
-CMD ["uwsgi", "--ini", "/etc/uwsgi/apps-enabled/web-app.ini"]
+CMD ["/bin/bash", "/opt/odst/startup.sh"]

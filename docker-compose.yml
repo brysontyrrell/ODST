@@ -31,6 +31,7 @@ services:
       - MYSQL_DATABASE=odsdb
       - MYSQL_USER=odsadmin
       - MYSQL_PASSWORD=odst1234
+      - CELERY_BROKER_URL=redis://redis:6379
       - DEBUG=True
       - ODS_CONF=/opt/odst/ods_conf.cfg
     networks:
