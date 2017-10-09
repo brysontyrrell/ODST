@@ -61,10 +61,10 @@ The application code is contained within the ``ods`` directory. When deploying
 with a WSGI server you can use the ``application.py`` file and the
 ``application`` pbject within it for your WSGI congfiguration.
 
-.. note:: The ODS APIs use token authentication and your production ODS
+    The ODS APIs use token authentication and your production ODS
     instances should use TLS encryption for all traffic!
 
-.. seealso:: An example WSGI configuration file for deploying the ODS
+    An example WSGI configuration file for deploying the ODS
     application with uWSGI can be found in ``/docker/webapp/web-app.ini``.
 
 There are a number of options available for deploying the ODS application. See
@@ -75,10 +75,18 @@ capable of using a local SQLite database for server data. ODS also supports
 connecting to a MySQL server. MySQL can be running locally on the same server as
 the ODS application or remotely.
 
-.. note:: PostgreSQL and MSSQL support are planned future enhancements.
+    PostgreSQL and MSSQL support are planned future enhancements.
 
-The ODS uses Redis for queuing tasks. Redis can be running locally on the same
-server as the ODS application or remotely.
+The ODS uses Redis for queuing tasks and Celery for processing those tasks.
+Redis can be running locally on the same server as the ODS application or
+remotely.
+
+To start the Celery worker run the following command from the application
+directory:
+
+.. code-block:: bash
+
+    celery worker --app ods_worker.celery --workdir /path/to/ODS-dir/
 
 Environment Variables
 ---------------------
@@ -116,7 +124,7 @@ Required Env Vars         Description
                           providing additional logging output.
 ========================= ==================================================
 
-.. note:: The following code will generate a randomized 32-byte key::
+    The following code will generate a randomized 32-byte key::
 
         >> import os
         >>> os.urandom(32)
@@ -140,7 +148,7 @@ MySQL Server Configuration
 Docker Compose
 --------------
 
-.. note:: This option as provided is primarily meant to serve as a development
+    This option as provided is primarily meant to serve as a development
     and testing solution, but it can be adapted to fit a production environment.
 
 You can create a full ODS instance using the provided ``docker-compose.ym;``
@@ -168,6 +176,22 @@ ODST repository's directory:
 Navigate to the IP address of your Docker host in a web browser to begin using
 the ODS web UI.
 
+Web UI Screenshots
+------------------
+
+Here are a collection of images showing the in-progress web UI for admins.
+
+.. image:: images/ods_login.png
+   :width: 350px
+
+.. image:: images/ods_admin.png
+   :width: 350px
+
+.. image:: images/ods_packages.png
+   :width: 350px
+
+.. image:: images/ods_network.png
+   :width: 350px
 
 Completed Features
 ------------------
@@ -195,3 +219,6 @@ Completed Features
 
     ODS registration is functional, and instances can make API requests to each
     other, but syncing is not yet implemented.
+
+Known Issues
+------------
