@@ -31,7 +31,7 @@ project is being written around the following design:
 
     Instead of a parent-child relationship structure as used by the JDS, the ODS
     will adopt a many-to-many relationship model. One ODS may be registered to
-    and number of other ODSs. When a package is uploaded to an ODS it will send
+    any number of other ODSs. When a package is uploaded to an ODS it will send
     a sync notification to each ODS it is registered to. Once they have finished
     syncing the package, each one of those recipients will repeat the process
     until the package has been synced throughout the network.
