@@ -59,7 +59,7 @@ The ODS application has variable requirements depending upon the environment.
 
 The application code is contained within the ``ods`` directory. When deploying
 with a WSGI server you can use the ``application.py`` file and the
-``application`` pbject within it for your WSGI congfiguration.
+``application`` object within it for your WSGI congfiguration.
 
     The ODS APIs use token authentication and your production ODS
     instances should use TLS encryption for all traffic!
@@ -103,7 +103,7 @@ Required Env Vars         Description
                           ``SECRET_KEY`` and ``DATABASE_KEY`` be populated using
                           this file.
 
-``SECRET_KEY``            A cryptographically random key used to secure« user
+``SECRET_KEY``            A cryptographically random key used to secure user
                           sessions.
 
 ``DATABASE_KEY``          A cryptographically random 32-byte key used to encrypt
@@ -151,7 +151,7 @@ Docker Compose
     This option as provided is primarily meant to serve as a development
     and testing solution, but it can be adapted to fit a production environment.
 
-You can create a full ODS instance using the provided ``docker-compose.ym;``
+You can create a full ODS instance using the provided ``docker-compose.yml``
 file on a running Docker host. This Docker Compose configuration will create and
 launch the following containers on your host:
 
