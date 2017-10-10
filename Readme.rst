@@ -171,7 +171,7 @@ ODST repository's directory:
 .. code-block:: bash
 
     docker-compose build
-    docker-computer up -d
+    docker-compose up -d
 
 Navigate to the IP address of your Docker host in a web browser to begin using
 the ODS web UI.
