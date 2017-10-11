@@ -1,6 +1,10 @@
-import flask
 import os
 
+import flask
+import pymysql.err
+import sqlalchemy.exc
+
+from ..exc import DuplicateRegisteredODS
 from ..database import db
 from ..ods_files import file_sha1_hash, file_chunk_sha1_hashes
 from .models import (
@@ -104,7 +108,11 @@ def one_package(name_or_id):
 
 def get_server_data():
     """Returns the database object for this JDS."""
-    ods = ServerData.query.first()
+    try:
+        ods = ServerData.query.first()
+    except (sqlalchemy.exc.IntegrityError, pymysql.err.IntegrityError):
+        raise DuplicateRegisteredODS
+
     cipher = AESCipher()
     ods.key = cipher.decrypt(ods.key_encrypted)
     return ods
@@ -114,7 +122,6 @@ def new_registered_ods(iss_id, key, url):
     cipher = AESCipher()
     ods = RegisteredODS(iss=iss_id, key_encrypted=cipher.encrypt(key), url=url)
     db.session.add(ods)
-    db.session.commit()
     ods.key = cipher.decrypt(ods.key_encrypted)
     return ods
 

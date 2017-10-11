@@ -35,7 +35,10 @@ class AESCipher(object):
                 flask.current_app.logger.error('Unable to load DATABASE_KEY '
                                                'from the application config.')
 
-        if len(self._key) * 8 != 256:
+        if self._key is None:
+            raise TypeError("Found 'NoneType' instead of string: Database key "
+                            "does not exist")
+        elif len(self._key) * 8 != 256:
             raise ValueError('Invalid key size (must be 256 bit)')
 
     def _cipher(self, iv):

@@ -1,10 +1,8 @@
 import os
-import random
-import string
 import time
 
 from flask import current_app
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import InternalError, OperationalError
 
 from .database import db
 from .database.models import AdminUser, ServerData, Package
@@ -19,25 +17,21 @@ def database_initialization():
     for 5 minutes until raising an Exception and stopping the application.
     """
     current_app.logger.info('Startup: Creating database schema...')
-    for attempt in range(0, 10):
+    for attempt in range(0, 30):
         try:
             db.create_all()
-        except OperationalError as err:
-            current_app.logger.warning('Startup: Database connection '
-                                       'unavailable. Retrying in 30 seconds...')
-            current_app.logger.debug(err)
-            time.sleep(30)
+        # Will update as additional databases become supported
+        except (InternalError, OperationalError) as err:
+            db.session.close()
+            current_app.logger.warning(
+                'Startup: Database connection error: {}: '
+                'Retrying in 10 seconds...'.format(err))
+            time.sleep(10)
         else:
             return
     else:
         current_app.logger.error('Startup: Unable to connect to database!')
         raise
-
-
-def generate_random_string(length=32):
-    chars = ''.join([
-        string.lowercase, string.uppercase, string.digits, string.punctuation])
-    return ''.join(random.SystemRandom().choice(chars) for i in range(length))
 
 
 def initial_setup():
@@ -58,15 +52,15 @@ def initial_setup():
     if not ServerData.query.first():
         current_app.logger.info(
             'Initial Setup: Generating ISS ID and Key for ODS')
-        key = generate_random_string()
+
+        key = os.urandom(32)
         ods = ServerData(key_encrypted=cipher.encrypt(key))
+
         db.session.add(ods)
         db.session.commit()
 
         current_app.logger.debug(
-            'Initial Setup: A key has been created for this ODS:\n  ISS: {}\n'
-            '  Key: {}\n\nUse this ISS and key and when registering other ODS '
-            'instances.'.format(ods.iss, key))
+            'Initial Setup: A key has been created for this ODS.')
         current_app.logger.warn(
             'Initial Setup: The ODS URL must be set in the Admin console!')
 
@@ -132,13 +126,16 @@ def package_validation():
         file_path = os.path.join(current_app.config['SHARE_DIR'], file_)
         file_sha1 = file_sha1_hash(file_path)
         file_chunk_sha1s = file_chunk_sha1_hashes(file_path)
+
         for package in packages:
+
             if package.filename == file_:
                 try:
                     assert file_sha1 == package.sha1
                     for chunk in package.chunks:
                         filehash = file_chunk_sha1s[chunk.chunk_index]
                         assert filehash == chunk.sha1
+
                 except AssertionError:
                     current_app.logger.info(
                         'Package Validation: SHA1 hash verification for file '
@@ -146,6 +143,7 @@ def package_validation():
                     os.remove(file_path)
                     db.session.delete(package)
                     db_commit = True
+
                 else:
                     current_app.logger.info(
                         'Package Validation: SHA1 verification passed for '

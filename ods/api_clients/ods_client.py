@@ -1,9 +1,11 @@
 import datetime
 import json
 
+import flask
 import jwt
 import requests
 
+from ..exc import ODSAuthenticationError
 from ..database.api import get_server_data
 from ..security.cipher import AESCipher
 
@@ -46,6 +48,7 @@ class ODSClient(object):
         :return:
         """
         resp = requests.post('{}/api/ods/command'.format(self._url), headers=self._token(), json=alert_data)
+        resp.raise_for_status()
 
     def all_packages(self):
         resp = requests.get('{}/api/ods/packages'.format(self._url), headers=self._token())
@@ -63,8 +66,20 @@ class ODSClient(object):
 
     def register_with(self):
         resp = requests.post('{}/api/ods/register'.format(self._url), headers=self._token(True))
+        _requests_error_status(resp)
         return
 
     def about(self):
         resp = requests.get('{}/api/ods/about'.format(self._url), headers=self._token())
+        _requests_error_status(resp)
         return resp.json()
+
+
+def _requests_error_status(response):
+    try:
+        response.raise_for_status()
+    except requests.HTTPError as err:
+        # This needs to be expanded to cover status code specific responses
+        flask.current_app.logger.exception(err)
+        flask.current_app.logger.debug(response.headers)
+        raise ODSAuthenticationError

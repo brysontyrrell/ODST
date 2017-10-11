@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 
 from . import db
@@ -9,7 +10,7 @@ class AdminUser(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), nullable=False, default='admin')
-    password = db.Column(db.String(64), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
 
     @property
     def is_authenticated(self):
@@ -34,7 +35,7 @@ class ServerData(db.Model):
     iss = db.Column(db.String(32), default=generate_uuid)
     key_encrypted = db.Column(db.String(128), nullable=False)
 
-    name = db.Column(db.String(128), nullable=False, default='JDS')
+    name = db.Column(db.String(128), nullable=False, default='ODS')
     url = db.Column(db.String(128), default='http://localhost')
     stage = db.Column(db.String(16), nullable=False, default='Prod')
     firewalled_mode = db.Column(db.Boolean, nullable=False, default=False)
@@ -51,7 +52,7 @@ class ServerData(db.Model):
             'firewalled_mode': self.firewalled_mode
         }
         if self.key:
-            data['key'] = self.key
+            data['key'] = base64.b64encode(self.key)
 
         return data
 

@@ -1,14 +1,15 @@
 import flask
-from celery import Celery
 
 from . import config
 from .database import db
 from .tasks import celery
-from .routes import api_admin, api_ods, web_admin, flask_overrides
+from .routes import (
+    api_admin, api_ods, web_admin, flask_overrides, error_handlers
+)
 from .startup import database_initialization, initial_setup, package_validation
 
 
-def create_app():
+def create_app(is_worker=False):
     app = flask.Flask('ods')
 
     # Configure from defaults
@@ -29,6 +30,7 @@ def create_app():
         app.config['UPLOAD_STAGING_DIR']))
 
     app.request_class = flask_overrides.PatchedRequest
+    app.register_blueprint(error_handlers.blueprint)
 
     app.register_blueprint(api_admin.blueprint)
     app.register_blueprint(api_ods.blueprint)
@@ -37,10 +39,11 @@ def create_app():
     db.init_app(app)
     configure_celery(celery, app)
 
-    with app.app_context():
-        database_initialization()
-        initial_setup()
-        package_validation()
+    if not is_worker:
+        with app.app_context():
+            database_initialization()
+            initial_setup()
+            package_validation()
 
     return app
 

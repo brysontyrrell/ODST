@@ -1,3 +1,4 @@
+import base64
 from datetime import datetime
 
 import flask
@@ -6,6 +7,7 @@ import psutil
 from werkzeug.utils import secure_filename
 
 from .shared import packages_json, server_data
+from ..exc import ODSAuthenticationError, RemoteRegistrationFailed
 from ..database.api import (
     all_registered_ods, new_registered_ods,
     update_registered_ods, new_uploaded_package
@@ -114,17 +116,26 @@ def register_ods():
         url = parse_url(data['url'])
     except ValueError as err:
         flask.flash(err.message)
-        flask.abort(400)
+        raise RemoteRegistrationFailed
 
-    if len(data['key']) != 32:
+    try:
+        decoded_key = base64.b64decode(data['key'])
+    except TypeError:
+        flask.flash('Key must be Base64 encoded!')
+        raise RemoteRegistrationFailed
+
+    if len(decoded_key) != 32:
         flask.flash('Invalid key provided!')
-        flask.abort(400)
+        raise RemoteRegistrationFailed
 
-    ods = new_registered_ods(data['iss_id'], data['key'], url)
-
+    ods = new_registered_ods(data['iss_id'], decoded_key, url)
     client = ODSClient(ods)
+
+    flask.current_app.logger.info('Performing registration with remote ODS...')
     client.register_with()
 
+    flask.current_app.logger.info('Updating registered ODS data...')
     update_registered_ods(ods, **client.about())
 
-    return flask.jsonify(''), 200
+    flask.current_app.logger.info('Remote ODS registration complete!')
+    return flask.jsonify({}), 200

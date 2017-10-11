@@ -4,6 +4,7 @@ import jwt
 
 from flask import abort, current_app, g, request
 
+from ..exc import ODSAuthenticationError
 from ..database.api import get_server_data, lookup_registered_ods
 
 
@@ -31,9 +32,8 @@ def _validate_jwt(lookup=True):
     except (jwt.InvalidAudienceError,
             jwt.exceptions.DecodeError,
             jwt.ExpiredSignatureError) as err:
-        current_app.logger.exception(err)
-        current_app.logger.debug('Decode error')
-        abort(401)
+        current_app.logger.error('JWT Validation Error: {}'.format(err))
+        raise ODSAuthenticationError
 
     # Verify the 'iss' and 'iat'  claims have been provided
     if not all(key in decoded_token.keys() for key in ('aud', 'iss', 'iat')):

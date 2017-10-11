@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 
@@ -27,7 +28,7 @@ def about():
 @blueprint.route('/register', methods=['POST'])
 @ods_auth_required(fail_on_lookup=False)
 def register_a_ods():
-    flask.current_app.logger.info('Request to register a remote JDS received...')
+    flask.current_app.logger.info('Request to register a remote ODS received...')
     token = flask.g.auth_token
     flask.current_app.logger.debug('Token received: {}'.format(token))
 
@@ -35,14 +36,15 @@ def register_a_ods():
     if not all(key in token.keys() for key in ('iss', 'iss_data')):
         flask.abort(400)
 
-    # Validate the remote key was encrypted with this JDS's key
+    # Validate the remote key was encrypted with this ODS's key
     # This should be moved into a sub-function
-    flask.current_app.logger.info("Decrypting registering JDS's data...")
+    flask.current_app.logger.info("Decrypting registering ODS's data...")
     this_ods = get_server_data()
     key_cipher = AESCipher(this_ods.key)
     remote_ods = json.loads(key_cipher.decrypt(token['iss_data']))
+    decoded_key = base64.b64decode(remote_ods['key'])
     try:
-        assert len(remote_ods['key']) == 32
+        assert len(decoded_key) == 32
     except AssertionError as err:
         flask.current_app.logger.exception(err)
         flask.current_app.logger.error('The remote key is invalid.')
@@ -53,7 +55,7 @@ def register_a_ods():
     registering_ods = RegisteredODS(
         iss=token['iss'],
         url=remote_ods['url'],
-        key_encrypted=cipher.encrypt(remote_ods['key']),
+        key_encrypted=cipher.encrypt(decoded_key),
         name=remote_ods['name'],
         stage=remote_ods['stage'],
         firewalled_mode=remote_ods['firewalled_mode']
@@ -103,7 +105,7 @@ def new_package(command):
     client = ODSClient(ods)
 
     flask.current_app.logger.info(
-        'New Package: Requesting package data from JDS: {}'.format(ods.iss))
+        'New Package: Requesting package data from ODS: {}'.format(ods.iss))
     package_data = client.get_package(command['package_id'])
     package = new_notified_package(package_data)
 
