@@ -3,6 +3,7 @@ import os
 import flask
 import pymysql.err
 import sqlalchemy.exc
+from werkzeug.utils import secure_filename
 
 from ..exc import DuplicateRegisteredODS
 from ..database import db
@@ -44,7 +45,7 @@ def new_uploaded_package(uploaded_file, stage):
     file_size = int(os.stat(upload_path).st_size)
 
     package = Package(sha1=file_sha1,
-                      filename=uploaded_file.filename,
+                      filename=secure_filename(uploaded_file.filename),
                       file_size=file_size,
                       stage=stage)
 
@@ -67,7 +68,6 @@ def new_uploaded_package(uploaded_file, stage):
 
 def new_notified_package(package_data):
     package = Package(sha1=package_data['sha1'],
-                      uuid=package_data['uuid'],
                       filename=package_data['filename'],
                       file_size=package_data['file_size'],
                       status='Downloading',
@@ -129,7 +129,10 @@ def new_registered_ods(iss_id, key, url):
 def update_registered_ods(ods, **kwargs):
     for key in kwargs.keys():
         if key in ('name', 'url', 'stage', 'firewalled_mode'):
-            setattr(ods, key, kwargs[key])
+            if not kwargs[key]:
+                continue
+            else:
+                setattr(ods, key, kwargs[key])
 
     db.session.commit()
 

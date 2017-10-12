@@ -1,47 +1,103 @@
 import hashlib
 import os
 
-import flask
+from flask import current_app
 
+from ..exc import ChunkHashFailure, PackageHashFailure
 from . import celery
 from ..database import db
-from ..database.models import PackageChunk
+from ..database.models import Package, PackageChunk
 from ..database.api import lookup_registered_ods
 from ..api_clients.ods_client import ODSClient
-
-
-BUFFER_SIZE = 1048576
+from .. import ods_files
 
 
 @celery.task()
-def download_chunk(filename, download_dir, package_chunk_id, jds_iss):
-    """"""
-    package_chunk = PackageChunk.query.get(package_chunk_id)
-    client = ODSClient(lookup_registered_ods(jds_iss))
+def download_package(package_id, ods_iss):
+    package = Package.query.get(package_id)
+    client = ODSClient(lookup_registered_ods(ods_iss))
 
-    range_start = package_chunk.chunk_index * BUFFER_SIZE
-    range_end = range_start + BUFFER_SIZE - 1
+    package_staging_dir = os.path.join(
+        current_app.config['UPLOAD_STAGING_DIR'], package.uuid)
 
-    flask.current_app.logger.info(
-        'Chunk download range: {}-{}'.format(range_start, range_end))
+    if not os.path.exists(package_staging_dir):
+        os.mkdir(package_staging_dir)
 
-    data = client.download_chunk(filename, range_start, range_end)
+    def get_pending_chunks():
+        return PackageChunk.query.filter_by(
+            package=package.id, downloaded=False).all()
 
-    chunk_dl_hash = hashlib.sha1(data).hexdigest()
+    def start_download():
+        for chunk in get_pending_chunks():
+            range_start = chunk.chunk_index * ods_files.BUFFER_SIZE
+            range_end = range_start + ods_files.BUFFER_SIZE - 1
 
-    flask.current_app.logger.info(
-        'Chuck {} DL SHA1: {}'.format(package_chunk.chunk_index, chunk_dl_hash))
-    flask.current_app.logger.info(
-        'Chunk expected SHA1: {}'.format(package_chunk.sha1))
+            current_app.logger.info(
+                'Chunk download range: {}-{}'.format(range_start, range_end))
 
-    if chunk_dl_hash != package_chunk.sha1:
-        raise Exception
-    else:
-        with open(os.path.join(
-                download_dir,
-                '{}_.chunk'.format(package_chunk.chunk_index)
-        ), 'wb') as chunk_file:
-            chunk_file.write(data)
+            data = client.download_chunk(
+                package.filename, range_start, range_end)
 
-        package_chunk.downloaded = True
+            chunk_dl_hash = hashlib.sha1(data).hexdigest()
+
+            current_app.logger.info(
+                'Chuck {} DL SHA1: {}'.format(chunk.chunk_index, chunk_dl_hash))
+            current_app.logger.info(
+                'Chunk expected SHA1: {}'.format(chunk.sha1))
+
+            if chunk_dl_hash != chunk.sha1:
+                raise ChunkHashFailure(
+                    'Chunk {} failed SHA1 verification'.format(
+                        chunk.chunk_index))
+            else:
+                with open(os.path.join(package_staging_dir, '{}.chunk'.format(
+                        str(chunk.chunk_index).zfill(6))), 'wb') as chunk_file:
+                    chunk_file.write(data)
+
+                chunk.downloaded = True
+                db.session.commit()
+
+    def complete_download():
+        current_app.logger.info('Package chunk downloads complete')
+        current_app.logger.info('Reconstituting original package...')
+
+        ods_files.write_combined_file(package.filename, package_staging_dir)
+
+        if package.sha1 != ods_files.file_sha1_hash(
+            os.path.join(
+                current_app.config['UPLOAD_STAGING_DIR'], package.filename)):
+
+            db.session.remove(package)
+            db.session.commit()
+            raise PackageHashFailure('Package {} failed SHA1 '
+                                     'verification'.format(package.filename))
+
+        current_app.logger.info('Package {} SHA1 verification '
+                                'success!'.format(package.filename))
+        current_app.logger.info('Moving {} to {}'.format(
+            package.filename, current_app.config['SHARE_DIR']))
+
+        ods_files.move_staging_to_static(package.filename)
+
+        package.status = 'Public'
         db.session.commit()
+
+    # This can be done better - will need reworked for multi-threading
+    download_failures = 0
+    while True:
+        try:
+            start_download()
+        except ChunkHashFailure as err:
+            current_app.logger.error(err)
+            current_app.logger.warning('Restarting package chunk downloads')
+            download_failures += 1
+            if download_failures >= 5:
+                # Auto-quarantine logic here
+                current_app.logger.error('Too many chunk download failures! '
+                                         'Aborting package download...')
+                break
+        else:
+            complete_download()
+            break
+        finally:
+            ods_files.remove_staging_files(package_staging_dir)

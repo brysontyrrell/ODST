@@ -15,3 +15,11 @@ class ODSAuthenticationError(ODSException):
 
 class RemoteRegistrationFailed(ODSException):
     """Registration with another ODS has failed."""
+
+
+class ChunkHashFailure(ODSException):
+    """A package chunk failed its SHA1 hash."""
+
+
+class PackageHashFailure(ODSException):
+    """A package failed its final SHA1 hash after download."""

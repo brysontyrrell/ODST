@@ -78,8 +78,9 @@ class ODSClient(object):
 def _requests_error_status(response):
     try:
         response.raise_for_status()
-    except requests.HTTPError as err:
+    except (requests.HTTPError, requests.ConnectionError) as err:
         # This needs to be expanded to cover status code specific responses
         flask.current_app.logger.exception(err)
-        flask.current_app.logger.debug(response.headers)
+        flask.current_app.logger.debug(
+            '{}\m{}'.format(response.url, response.headers))
         raise ODSAuthenticationError

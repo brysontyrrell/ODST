@@ -36,7 +36,7 @@ class ServerData(db.Model):
     key_encrypted = db.Column(db.String(128), nullable=False)
 
     name = db.Column(db.String(128), nullable=False, default='ODS')
-    url = db.Column(db.String(128), default='http://localhost')
+    url = db.Column(db.String(128), default=None)
     stage = db.Column(db.String(16), nullable=False, default='Prod')
     firewalled_mode = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -78,7 +78,7 @@ class RegisteredODS(db.Model):
     key_encrypted = db.Column(db.String(128), unique=True, nullable=False)
 
     name = db.Column(db.String(128), nullable=False, default='')
-    url = db.Column(db.String(128), unique=True, nullable=False)
+    url = db.Column(db.String(128), unique=True)
     stage = db.Column(db.String(16), nullable=False, default='Prod')
     firewalled_mode = db.Column(db.Boolean, nullable=False, default='False')
 

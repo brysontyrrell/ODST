@@ -4,10 +4,9 @@ from datetime import datetime
 import flask
 from flask.blueprints import Blueprint
 import psutil
-from werkzeug.utils import secure_filename
 
 from .shared import packages_json, server_data
-from ..exc import ODSAuthenticationError, RemoteRegistrationFailed
+from ..exc import RemoteRegistrationFailed
 from ..database.api import (
     all_registered_ods, new_registered_ods,
     update_registered_ods, new_uploaded_package
@@ -86,23 +85,23 @@ def upload_file():
     flask.current_app.logger.info(
         'Package Upload: Saving package objects to database...')
     package = new_uploaded_package(uploaded_file, stage)
-    filename = secure_filename(package.filename)
 
     flask.current_app.logger.info(
         'Package Upload: Moving from staging to static (Public)...')
-    move_staging_to_static(filename)
+    move_staging_to_static(package.filename)
 
     # Need to include functionality here for: notify JDSs queue task
-    ods_to_notify = all_registered_ods()
-    for ods in ods_to_notify:
+    for ods in all_registered_ods():
         flask.current_app.logger.info(
             'Package Upload: Sending new package notification to ODS: '
             '{}'.format(ods.iss))
+
         client = ODSClient(ods)
-        client.send_command({'command': 'new_package', 'package_id': package.id})
+        client.send_command(
+            {'command': 'new_package', 'package_id': package.id})
 
     return flask.jsonify(
-        {'filename': filename, 'sha1': package.sha1}), 201
+        {'filename': package.filename, 'sha1': package.sha1}), 201
 
 
 @blueprint.route('/register', methods=['POST'])

@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import urlparse
 
 import flask
 from flask.blueprints import Blueprint
@@ -11,7 +12,7 @@ from .shared import server_data, package_json, packages_json
 from ..database import db
 from ..database.api import get_server_data, new_notified_package
 from ..database.models import RegisteredODS
-from ..tasks.tasks import download_chunk
+from ..tasks.tasks import download_package
 from ..api_clients.ods_client import ODSClient
 from ..security.auth import ods_auth_required
 from ..security.cipher import AESCipher
@@ -39,9 +40,10 @@ def register_a_ods():
     # Validate the remote key was encrypted with this ODS's key
     # This should be moved into a sub-function
     flask.current_app.logger.info("Decrypting registering ODS's data...")
-    this_ods = get_server_data()
-    key_cipher = AESCipher(this_ods.key)
+    key_cipher = AESCipher(get_server_data().key)
+
     remote_ods = json.loads(key_cipher.decrypt(token['iss_data']))
+    flask.current_app.logger.debug(remote_ods)
     decoded_key = base64.b64decode(remote_ods['key'])
     try:
         assert len(decoded_key) == 32
@@ -50,11 +52,23 @@ def register_a_ods():
         flask.current_app.logger.error('The remote key is invalid.')
         flask.abort(403)
 
+    def remote_ods_url():
+        if not remote_ods['url']:
+            # REMOVE THIS ONCE UI ALLOWS SERVER EDITING
+            if flask.request.headers.getlist("X-Forwarded-For"):
+                ip_addr = flask.request.headers.getlist("X-Forwarded-For")[0]
+            else:
+                ip_addr = flask.request.remote_addr
+
+            return urlparse.urlunparse(('http', ip_addr, '', '', '', ''))
+        else:
+            return remote_ods['url']
+
     cipher = AESCipher()
 
     registering_ods = RegisteredODS(
         iss=token['iss'],
-        url=remote_ods['url'],
+        url=remote_ods_url(),
         key_encrypted=cipher.encrypt(decoded_key),
         name=remote_ods['name'],
         stage=remote_ods['stage'],
@@ -65,6 +79,7 @@ def register_a_ods():
     try:
         db.session.add(registering_ods)
         db.session.commit()
+        flask.current_app.logger.debug(registering_ods.serialize)
     except (saIntError, myIntErr) as err:
         flask.current_app.logger.error(err)
         flask.abort(409)
@@ -120,10 +135,8 @@ def new_package(command):
         'New Package: Created staging directory: {}'.format(staging_dir))
 
     flask.current_app.logger.info(
-        'New Package: Sending package chunks to download queue...')
-
-    for chunk in package.chunks:
-        download_chunk.delay(package.filename, staging_dir, chunk.id, ods.iss)
+        'New Package: Sending package to download queue...')
+    download_package.delay(package.id, ods.iss)
 
 
 @blueprint.route('/packages')
