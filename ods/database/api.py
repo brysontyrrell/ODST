@@ -118,6 +118,19 @@ def get_server_data():
     return ods
 
 
+def update_server_data(**kwargs):
+    ods = get_server_data()
+
+    for key in kwargs.keys():
+        if key in ('name', 'url', 'stage', 'fw_mode'):
+            if key == 'fw_mode':
+                kwargs[key] = True if kwargs[key] == 'Enabled' else False
+
+            setattr(ods, key, kwargs[key])
+
+    db.session.commit()
+
+
 def new_registered_ods(iss_id, key, url):
     cipher = AESCipher()
     ods = RegisteredODS(iss=iss_id, key_encrypted=cipher.encrypt(key), url=url)

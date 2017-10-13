@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% block body_content %}
+
+    {% include 'modals/about_update.html' %}
+
   <div class="container-fluid">
 
     <div class="col-sm-12 col-md-12 main">
@@ -36,7 +39,8 @@
                     <td id="ods-stage"></td>
                     <td id="ods-firewalled"></td>
                     <td>
-                        <button class="btn btn-jamf btn-xs" title="Edit">
+                        <button class="btn btn-jamf btn-xs" data-toggle="modal"
+                                data-target="#aboutUpdate" title="Edit">
                             <span class="glyphicon glyphicon-edit"></span>
                         </button>
                     </td>

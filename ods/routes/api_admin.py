@@ -9,7 +9,8 @@ from .shared import packages_json, server_data
 from ..exc import RemoteRegistrationFailed
 from ..database.api import (
     all_registered_ods, new_registered_ods,
-    update_registered_ods, new_uploaded_package
+    update_registered_ods, new_uploaded_package,
+    update_server_data
 )
 from ..api_clients.ods_client import ODSClient
 from ..ods_files import move_staging_to_static
@@ -30,6 +31,14 @@ def admin_error_conflict(error):
 @blueprint.route('/about')
 def about():
     return server_data()
+
+
+@blueprint.route('/about/update', methods=['POST'])
+def about_update():
+    flask.current_app.logger.info('Updating server information...')
+    data = flask.request.get_json()
+    update_server_data(**data)
+    return '', 201
 
 
 @blueprint.route('/system')
