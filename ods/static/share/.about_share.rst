@@ -1,0 +1,6 @@
+The ``share`` directory is the public location for packages and other files that
+are served by the ODS.
+
+By default, successful uploads and downloads will be moved here. This directory
+can be aliased or mounted to other locations/volumes if you wish to leverage
+other storage locations.
