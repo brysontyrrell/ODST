@@ -109,7 +109,7 @@ class Package(db.Model):
         db.String(32), unique=True, nullable=False, default=generate_uuid)
     sha1 = db.Column(db.String(40), unique=True, nullable=False)
     filename = db.Column(db.String(128), nullable=False)
-    file_size = db.Column(db.Integer, nullable=False)
+    file_size = db.Column(db.BigInteger, nullable=False)
     status = db.Column(db.String(16), nullable=False, default='Public')
     stage = db.Column(db.String(16), nullable=False, default='Prod')
 
@@ -136,7 +136,7 @@ class PackageChunk(db.Model):
     __tablename__ = 'package_chunks'
 
     id = db.Column(db.Integer, primary_key=True)
-    sha1 = db.Column(db.String(40), unique=True, nullable=False)
+    sha1 = db.Column(db.String(40), nullable=False)
     chunk_index = db.Column(db.Integer, nullable=False)
     downloaded = db.Column(db.Boolean, nullable=False, default=False)
 

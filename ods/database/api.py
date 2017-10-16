@@ -51,7 +51,7 @@ def new_uploaded_package(uploaded_file, stage):
 
     db.session.add(package)
     flask.current_app.logger.info('New Package: Saving to database...')
-    db.session.commit()
+    db.session.flush()
 
     for sha1 in chunk_sha1s:
         db.session.add(
