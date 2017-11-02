@@ -1,3 +1,4 @@
+docs/_*
 ods/jds-local.db
 ods/static/share/*
 !ods/static/share/.about_share.rst

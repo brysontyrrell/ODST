@@ -1,5 +1,5 @@
-Open Distribution Server (Tech)
-===============================
+Open Distribution Server Technologies
+=====================================
 
 The Open Distribution Server (ODS) is an in-progress web application to provide
 a potential alternative package distribution server for IT administrators to the
@@ -51,6 +51,19 @@ project is being written around the following design:
     Instead of being a separate interface from the admin API, the web UI will be
     built directly on top of the admin API providing 1:1 feature parity between
     the two forms of interaction.
+
+.. image:: images/ods_login.png
+   :width: 350px
+
+.. image:: images/ods_admin.png
+   :width: 350px
+
+.. image:: images/ods_packages.png
+   :width: 350px
+
+.. image:: images/ods_network.png
+   :width: 350px
+
 
 Custom Installation
 -------------------
@@ -175,50 +188,3 @@ ODST repository's directory:
 
 Navigate to the IP address of your Docker host in a web browser to begin using
 the ODS web UI.
-
-Web UI Screenshots
-------------------
-
-Here are a collection of images showing the in-progress web UI for admins.
-
-.. image:: images/ods_login.png
-   :width: 350px
-
-.. image:: images/ods_admin.png
-   :width: 350px
-
-.. image:: images/ods_packages.png
-   :width: 350px
-
-.. image:: images/ods_network.png
-   :width: 350px
-
-Completed Features
-------------------
-
-* Admin web login
-
-    Default username: ``admin``
-
-    Default password: ``ods1234!``
-
-* Admin web UI
-
-    The web UI page for server administration currently shows ODS settings via
-    ``/api/admin/about`` and system information via ``/api/admin/system``.
-
-* Package web UI
-
-    Package data is available via ``/api/admin/packages``.
-
-* Package uploads via ``/api/admin/upload``
-
-    This is also implemented in the package UI.
-
-* ODS network UI
-
-    ODS registration is functional, and instances can make API requests to each
-    other, but syncing is not yet implemented.
-
-Known Issues
-------------
