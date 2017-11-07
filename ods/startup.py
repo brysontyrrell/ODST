@@ -5,10 +5,10 @@ from flask import current_app
 from sqlalchemy.exc import InternalError, OperationalError
 
 from .database import db
-from .database.models import AdminUser, ServerData, Package
-from .ods_files import file_sha1_hash, file_chunk_sha1_hashes
+from .database.models import AdminUser, ServerData
 from .security.cipher import AESCipher
 from .security.passwords import derive_key
+from .tasks.startup import validate_packages
 
 
 def database_initialization():
@@ -67,6 +67,8 @@ def initial_setup():
     if not os.path.exists(current_app.config['SHARE_DIR']):
         try:
             os.makedirs(current_app.config['SHARE_DIR'], 0755)
+            current_app.logger.info('Initial Setup: The share directory has '
+                                    'been created.')
         except IOError:
             current_app.logger.error('Initial Setup: The share directory does '
                                      'not exist and cannot be created!')
@@ -77,81 +79,4 @@ def initial_setup():
 
 def package_validation():
     current_app.logger.info('Startup: Running package validation...')
-
-    db_commit = False
-
-    packages = Package.query.all()
-    files = os.listdir(current_app.config['SHARE_DIR'])
-
-    if files:
-        current_app.logger.info(
-            'Package Validation: Verifying packages in database against '
-            '{}'.format(current_app.config['SHARE_DIR']))
-
-    for file_ in files:
-        if file_ not in [package.filename for package in packages]:
-            current_app.logger.info(
-                'Package Validation: Local file not found in database: '
-                '{}'.format(file_))
-            try:
-                os.remove(os.path.join(
-                    current_app.config['SHARE_DIR'], file_))
-            except OSError as err:
-                current_app.logger.exception(err)
-                current_app.logger.error(
-                    'Package Validation: Unable to remove the file: '
-                    '{}'.format(err))
-            else:
-                current_app.logger.info(
-                    'Package Validation: File removed.')
-
-            files.remove(file_)
-
-    for package in packages:
-        if package.filename not in files:
-            current_app.logger.info(
-                'Package Validation: Package not found in local files: '
-                '{}'.format(package.filename))
-            current_app.logger.info(
-                'Package Validation: Removed from database.')
-            db.session.delete(package)
-            packages.remove(package)
-            db_commit = True
-
-    if files:
-        current_app.logger.info(
-            'Package Validation: Verifying SHA1 hashes...')
-
-    for file_ in files:
-        file_path = os.path.join(current_app.config['SHARE_DIR'], file_)
-        file_sha1 = file_sha1_hash(file_path)
-        file_chunk_sha1s = file_chunk_sha1_hashes(file_path)
-
-        for package in packages:
-
-            if package.filename == file_:
-                try:
-                    assert file_sha1 == package.sha1
-                    for chunk in package.chunks:
-                        filehash = file_chunk_sha1s[chunk.chunk_index]
-                        assert filehash == chunk.sha1
-
-                except AssertionError:
-                    current_app.logger.info(
-                        'Package Validation: SHA1 hash verification for file '
-                        'failed: {}'.format(file_))
-                    os.remove(file_path)
-                    db.session.delete(package)
-                    db_commit = True
-
-                else:
-                    current_app.logger.info(
-                        'Package Validation: SHA1 verification passed for '
-                        'file: {}'.format(file_))
-
-    if db_commit:
-        db.session.commit()
-
-    db.session.close()
-
-    current_app.logger.info('Startup: Package Validation complete.')
+    validate_packages.delay()

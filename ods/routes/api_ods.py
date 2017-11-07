@@ -12,7 +12,7 @@ from .shared import server_data, package_json, packages_json
 from ..database import db
 from ..database.api import get_server_data, new_notified_package
 from ..database.models import RegisteredODS
-from ..tasks.tasks import download_package
+from ..tasks.sync import download_package
 from ..api_clients.ods_client import ODSClient
 from ..security.auth import ods_auth_required
 from ..security.cipher import AESCipher
