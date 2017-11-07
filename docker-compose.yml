@@ -19,7 +19,7 @@ services:
     networks:
       - cache
 
-  web:
+  webapp:
     build:
       context: ./
       dockerfile: ./docker/webapp/Dockerfile
@@ -42,6 +42,29 @@ services:
       - mysql
       - redis
 
+  worker:
+    build:
+      context: ./
+      dockerfile: ./docker/worker/Dockerfile
+    restart: always
+    volumes:
+      - static:/opt/odst/ods/static/share
+    environment:
+      - MYSQL_SERVER=mysql
+      - MYSQL_DATABASE=odsdb
+      - MYSQL_USER=odsadmin
+      - MYSQL_PASSWORD=odst1234
+      - CELERY_BROKER_URL=redis://redis:6379
+      - DEBUG=True
+      - ODS_CONF=/opt/odst/ods_conf.cfg
+    networks:
+      - cache
+      - db
+    depends_on:
+      - mysql
+      - redis
+      - webapp
+
   nginx:
     build: ./docker/nginx
     restart: always
@@ -52,7 +75,7 @@ services:
     networks:
       - proxy
     depends_on:
-      - web
+      - webapp
 
 networks:
   cache:
