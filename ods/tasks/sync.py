@@ -1,4 +1,3 @@
-import hashlib
 import os
 
 from flask import current_app
@@ -38,7 +37,7 @@ def download_package(package_id, ods_iss):
             data = client.download_chunk(
                 package.filename, range_start, range_end)
 
-            chunk_dl_hash = hashlib.sha1(data).hexdigest()
+            chunk_dl_hash = ods_files.simple_sha1_hash(data)
 
             current_app.logger.info(
                 'Chuck {} DL SHA1: {}'.format(chunk.chunk_index, chunk_dl_hash))

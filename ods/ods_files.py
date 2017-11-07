@@ -1,9 +1,10 @@
 import glob
-import hashlib
 import os
 import shutil
 
 import flask
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
 
 BUFFER_SIZE = 1024 * 1024  # 1 megabyte = 1048576
 
@@ -18,18 +19,25 @@ def read_in_chunks(file_object):
         yield data
 
 
+def simple_sha1_hash(data):
+    """Returns a SHA1 hash for the provided data using cryptography.io"""
+    digest = hashes.Hash(hashes.SHA1(), backend=default_backend())
+    digest.update(data)
+    return digest.finalize().encode('hex')
+
+
 def file_sha1_hash(file_path):
     """Obtain the SHA1 hash of a file."""
-    sha1_hash = hashlib.sha1()
+    digest = hashes.Hash(hashes.SHA1(), backend=default_backend())
     with open(file_path, 'rb') as fobj:
         while True:
             data = fobj.read(BUFFER_SIZE)
             if not data:
                 break
 
-            sha1_hash.update(data)
+            digest.update(data)
 
-    return sha1_hash.hexdigest()
+    return digest.finalize().encode('hex')
 
 
 def file_chunk_sha1_hashes(file_path):
@@ -37,7 +45,7 @@ def file_chunk_sha1_hashes(file_path):
     sha1_hashes = list()
     with open(file_path, 'rb') as fobj:
         for chunk in read_in_chunks(fobj):
-            sha1_hashes.append(hashlib.sha1(chunk).hexdigest())
+            sha1_hashes.append(simple_sha1_hash(chunk))
 
     return sha1_hashes
 
