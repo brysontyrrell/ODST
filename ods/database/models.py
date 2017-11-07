@@ -114,7 +114,7 @@ class Package(db.Model):
     stage = db.Column(db.String(16), nullable=False, default='Prod')
 
     chunks = db.relationship(
-        'PackageChunk', backref='packages', lazy='joined', cascade='delete')
+        'PackageChunk', backref='packages', lazy='dynamic', cascade='delete')
 
     @property
     def serialize(self):

@@ -5,7 +5,7 @@ import flask
 from flask.blueprints import Blueprint
 import psutil
 
-from .shared import packages_json, server_data
+from .shared import server_data, package_json, packages_json
 from ..exc import RemoteRegistrationFailed
 from ..database.api import (
     all_registered_ods, new_registered_ods,
@@ -78,6 +78,11 @@ def system():
 @blueprint.route('/packages')
 def list_packages():
     return packages_json()
+
+
+@blueprint.route('/packages/<package_id_or_name>')
+def get_package(package_id_or_name):
+    return package_json(package_id_or_name)
 
 
 @blueprint.route('/registered_ods')
