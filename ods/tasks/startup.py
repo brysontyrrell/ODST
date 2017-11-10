@@ -84,6 +84,5 @@ def validate_packages():
     if db_commit:
         db.session.commit()
 
-    db.session.close()
-
     current_app.logger.info('Startup: Package Validation complete.')
+    db.session.remove()

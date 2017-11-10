@@ -53,10 +53,10 @@ def new_uploaded_package(uploaded_file, stage):
     flask.current_app.logger.info('New Package: Saving to database...')
     db.session.flush()
 
-    for sha1 in chunk_sha1s:
+    for idx, sha1 in enumerate(chunk_sha1s):
         db.session.add(
             PackageChunk(sha1=sha1,
-                         chunk_index=chunk_sha1s.index(sha1),
+                         chunk_index=idx,
                          downloaded=True,
                          package=package.id)
         )
@@ -67,6 +67,14 @@ def new_uploaded_package(uploaded_file, stage):
 
 
 def new_notified_package(package_data):
+    # We're checking if the package is already in the database
+    # If it is we will not be queuing up the download
+    if Package.query.filter_by(sha1=package_data['sha1']).first():
+        flask.current_app.logger.warning(
+            'New Package: The notified package exists in the database - '
+            'download will not be queued.')
+        return None
+
     package = Package(sha1=package_data['sha1'],
                       filename=package_data['filename'],
                       file_size=package_data['file_size'],
@@ -83,6 +91,7 @@ def new_notified_package(package_data):
                          chunk_index=chunk['index'],
                          package=package.id)
         )
+
     flask.current_app.logger.info('New Package: Saving chunks to database...')
     db.session.commit()
 

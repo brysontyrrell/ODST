@@ -124,6 +124,9 @@ def new_package(command):
     package_data = client.get_package(command['package_id'])
     package = new_notified_package(package_data)
 
+    if not package:
+        return
+
     flask.current_app.logger.info(
         'New Package: Filename: {}'.format(package.filename))
 

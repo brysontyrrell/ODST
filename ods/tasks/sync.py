@@ -4,6 +4,7 @@ from flask import current_app
 
 from ..exc import ChunkHashFailure, PackageHashFailure
 from . import celery
+from .notifications import send_new_package_command
 from ..database import db
 from ..database.models import Package, PackageChunk
 from ..database.api import lookup_registered_ods
@@ -66,7 +67,7 @@ def download_package(package_id, ods_iss):
             os.path.join(
                 current_app.config['UPLOAD_STAGING_DIR'], package.filename)):
 
-            db.session.remove(package)
+            db.session.delete(package)
             db.session.commit()
             raise PackageHashFailure('Package {} failed SHA1 '
                                      'verification'.format(package.filename))
@@ -97,6 +98,9 @@ def download_package(package_id, ods_iss):
                 break
         else:
             complete_download()
+            send_new_package_command(package.id)
             break
         finally:
+            current_app.logger.info('Removing chunk directory...')
             ods_files.remove_staging_files(package_staging_dir)
+            db.session.remove()

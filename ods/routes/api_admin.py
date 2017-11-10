@@ -14,6 +14,7 @@ from ..database.api import (
 )
 from ..api_clients.ods_client import ODSClient
 from ..ods_files import move_staging_to_static
+from ..tasks.notifications import send_new_package_command
 from ..utilities import human_readable_bytes, human_readable_time, parse_url
 
 blueprint = Blueprint('api_admin', __name__, url_prefix='/api/admin')
@@ -104,15 +105,7 @@ def upload_file():
         'Package Upload: Moving from staging to static (Public)...')
     move_staging_to_static(package.filename)
 
-    # Need to include functionality here for: notify JDSs queue task
-    for ods in all_registered_ods():
-        flask.current_app.logger.info(
-            'Package Upload: Sending new package notification to ODS: '
-            '{}'.format(ods.iss))
-
-        client = ODSClient(ods)
-        client.send_command(
-            {'command': 'new_package', 'package_id': package.id})
+    send_new_package_command.delay(package.id)
 
     return flask.jsonify(
         {'filename': package.filename, 'sha1': package.sha1}), 201
