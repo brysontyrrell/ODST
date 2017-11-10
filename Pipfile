@@ -1,0 +1,32 @@
+[[source]]
+
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi"
+
+
+[dev-packages]
+
+sphinx = "*"
+sphinx-rtd-theme = "*"
+pytest = "*"
+
+
+[packages]
+
+flask = "*"
+cryptography = "*"
+celery = "*"
+psutil = "*"
+flask-sqlalchemy = "*"
+pymysql = "*"
+requests = "*"
+dicttoxml = "*"
+pyjwt = "*"
+flask-login = "*"
+redis = "*"
+
+
+[requires]
+
+python_version = "2.7"

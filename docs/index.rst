@@ -55,6 +55,7 @@ or running as a containerized server in Docker or Kubernetes.
    :caption: Installation Guides
    :maxdepth: 1
 
+   installation/python_env
    installation/config
    installation/docker
 

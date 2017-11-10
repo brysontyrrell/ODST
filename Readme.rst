@@ -9,6 +9,17 @@ The goal of the ODS project is to provide the base feature set of the JDS with
 several additional technologies to better control and integrate distribution
 servers into IT environments.
 
+Project Documentation
+---------------------
+
+Installation guides and instructions for using the included Docker Compose
+example can be found on the official documentation site:
+
+`<http://odst.readthedocs.io/en/develop/>`_
+
+About ODST
+----------
+
 In addition to core tenant of simple and automatic package replication, the ODST
 project is being written around the following design:
 
@@ -63,128 +74,3 @@ project is being written around the following design:
 
 .. image:: images/ods_network.png
    :width: 350px
-
-
-Custom Installation
--------------------
-
-The ODS application has variable requirements depending upon the environment.
-
-The application code is contained within the ``ods`` directory. When deploying
-with a WSGI server you can use the ``application.py`` file and the
-``application`` object within it for your WSGI congfiguration.
-
-    The ODS APIs use token authentication and your production ODS
-    instances should use TLS encryption for all traffic!
-
-    An example WSGI configuration file for deploying the ODS
-    application with uWSGI can be found in ``/docker/webapp/web-app.ini``.
-
-There are a number of options available for deploying the ODS application. See
-`<http://flask.pocoo.org/docs/0.12/deploying/>`_ for more information.
-
-In a single server installation (a standard, minimal install), the ODS is
-capable of using a local SQLite database for server data. ODS also supports
-connecting to a MySQL server. MySQL can be running locally on the same server as
-the ODS application or remotely.
-
-    PostgreSQL and MSSQL support are planned future enhancements.
-
-The ODS uses Redis for queuing tasks and Celery for processing those tasks.
-Redis can be running locally on the same server as the ODS application or
-remotely.
-
-To start the Celery worker run the following command from the application
-directory:
-
-.. code-block:: bash
-
-    celery worker --app ods_worker.celery --workdir /path/to/ODS-dir/
-
-Environment Variables
----------------------
-
-The ODS application will read environment variables from the system to configure
-itself at runtime.
-
-========================= ==================================================
-Required Env Vars         Description
-========================= ==================================================
-``ODS_CONF``              The path to a configuration file written in Python
-                          that contains any of the described environment
-                          variables listed here. It is recommended that your
-                          ``SECRET_KEY`` and ``DATABASE_KEY`` be populated using
-                          this file.
-
-``SECRET_KEY``            A cryptographically random key used to secure user
-                          sessions.
-
-``DATABASE_KEY``          A cryptographically random 32-byte key used to encrypt
-                          sensitive data within the ODS database.
-
-``CELERY_BROKER_URL``     The URL to the Redis server. If not provided the value
-                          will default to ``redis://localhost:6379``.
-
-``CELERY_BACKEND_URL``    *(optional)* An alternative URL to the Redis backend.
-                          If not provided it will default to the value of
-                          ``CELERY_BROKER_URL``.
-
-``UPLOAD_STAGING_DIR``    *(optional)* You may specify the staging directory
-                          where file uploads are cached. If not provided, a
-                          randomized temp directory will be created.
-
-``DEBUG``                 *(optional)* Runs the server in ``Debug`` mode
-                          providing additional logging output.
-========================= ==================================================
-
-    The following code will generate a randomized 32-byte key::
-
-        >> import os
-        >>> os.urandom(32)
-
-By default, the ODS will create a local SQLite database located within the
-application's directory on the system. To use a database server, set the
-appropriate environment variables as shown below.
-
-========================= ==================================================
-MySQL Server Configuration
-============================================================================
-``MYSQL_SERVER``          The URL to the MySQL server (with port).
-
-``MYSQL_DATABASE``        The name of the MySQL database to connect to.
-
-``MYSQL_USER``            The user to authenticate to the database.
-
-``MYSQL_PASSWORD``        The password to the user.
-========================= ==================================================
-
-Docker Compose
---------------
-
-    This option as provided is primarily meant to serve as a development
-    and testing solution, but it can be adapted to fit a production environment.
-
-You can create a full ODS instance using the provided ``docker-compose.yml``
-file on a running Docker host. This Docker Compose configuration will create and
-launch the following containers on your host:
-
-- Nginx
-- ODS Application (uWSGI)
-- MySQL
-- Redis
-
-There will also be two data volumes for persisting the MySQL database as well as
-the file share directory located at ``/opt/odst/ods/static/share``. The file
-share volume is shared between the ODS application and Nginx containers. In this
-configuration Nginx takes over for serving the packages.
-
-Use the following commands to launch the containers on a Docker host from the
-ODST repository's directory:
-
-.. code-block:: bash
-
-    docker-compose build
-    docker-compose up -d
-
-Navigate to the IP address of your Docker host in a web browser to begin using
-the ODS web UI.
