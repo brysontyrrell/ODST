@@ -61,3 +61,10 @@ def configure_celery(celery_, app):
                 return TaskBase.__call__(self, *args, **kwargs)
 
     celery_.Task = ContextTask
+
+
+def create_docs_app():
+    """Instantiates the Flask application object for creating documentation."""
+    app = flask.Flask('ods')
+    app.register_blueprint(api_admin.blueprint)
+    return app

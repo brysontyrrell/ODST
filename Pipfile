@@ -7,9 +7,10 @@ name = "pypi"
 
 [dev-packages]
 
-sphinx = "*"
+sphinx = "==1.5.6"
 sphinx-rtd-theme = "*"
 pytest = "*"
+sphinxcontrib-httpdomain = "*"
 
 
 [packages]

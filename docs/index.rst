@@ -27,6 +27,12 @@ Features
 - Support for Jamf Pro
 - And More...
 
+.. note::
+
+   If you use a management solution other than Jamf Pro and would like to see
+   integration features between ODST and your solution, please open a GitHub
+   issue with a description!
+
 The Open Distribution Server
 ----------------------------
 
@@ -49,7 +55,16 @@ or running as a containerized server in Docker or Kubernetes.
    :caption: Admin Guide
    :maxdepth: 1
 
+   admin/initial_setup
+   admin/ods_registration
+   admin/package_mgmt
    admin/known_issues
+
+.. toctree::
+   :caption: API Reference
+   :maxdepth: 1
+
+   api/admin_api
 
 .. toctree::
    :caption: Installation Guides
