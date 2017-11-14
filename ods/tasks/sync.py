@@ -32,18 +32,18 @@ def download_package(package_id, ods_iss):
             range_start = chunk.chunk_index * ods_files.BUFFER_SIZE
             range_end = range_start + ods_files.BUFFER_SIZE - 1
 
-            current_app.logger.info(
-                'Chunk download range: {}-{}'.format(range_start, range_end))
+            # current_app.logger.info(
+            #     'Chunk download range: {}-{}'.format(range_start, range_end))
 
             data = client.download_chunk(
                 package.filename, range_start, range_end)
 
             chunk_dl_hash = ods_files.simple_sha1_hash(data)
 
-            current_app.logger.info(
-                'Chuck {} DL SHA1: {}'.format(chunk.chunk_index, chunk_dl_hash))
-            current_app.logger.info(
-                'Chunk expected SHA1: {}'.format(chunk.sha1))
+            # current_app.logger.info(
+            #     'Chuck {} DL SHA1: {}'.format(chunk.chunk_index, chunk_dl_hash))
+            # current_app.logger.info(
+            #     'Chunk expected SHA1: {}'.format(chunk.sha1))
 
             if chunk_dl_hash != chunk.sha1:
                 raise ChunkHashFailure(

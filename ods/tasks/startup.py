@@ -20,6 +20,19 @@ def validate_packages():
             'Package Validation: Verifying packages in database against '
             '{}'.format(current_app.config['SHARE_DIR']))
 
+    # Remove database entries that don't exist in the file share
+    for package in packages:
+        if package.filename not in files:
+            current_app.logger.info(
+                'Package Validation: Package not found in local files: '
+                '{}'.format(package.filename))
+            current_app.logger.info(
+                'Package Validation: Removed from database.')
+            db.session.delete(package)
+            # packages.remove(package)
+            db_commit = True
+
+    # Remove local files that are not in the database
     for file_ in files:
         if file_ not in [package.filename for package in packages]:
             current_app.logger.info(
@@ -33,22 +46,12 @@ def validate_packages():
                 current_app.logger.error(
                     'Package Validation: Unable to remove the file: '
                     '{}'.format(err))
+                # Queue an error notification here
             else:
                 current_app.logger.info(
                     'Package Validation: File removed.')
 
             files.remove(file_)
-
-    for package in packages:
-        if package.filename not in files:
-            current_app.logger.info(
-                'Package Validation: Package not found in local files: '
-                '{}'.format(package.filename))
-            current_app.logger.info(
-                'Package Validation: Removed from database.')
-            db.session.delete(package)
-            packages.remove(package)
-            db_commit = True
 
     if files:
         current_app.logger.info(
