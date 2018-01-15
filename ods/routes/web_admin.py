@@ -78,6 +78,7 @@ def network():
 
 
 @blueprint.route('/share/<filename>')
+@blueprint.route('/Packages/<filename>')
 def share_download(filename):
     return flask.send_from_directory(
         flask.current_app.config['SHARE_DIR'], filename, conditional=True), 200
